@@ -175,7 +175,7 @@ class OfferButton(discord.ui.Button):
         salon = bot.get_channel(bot.shop_channel_id)
         if salon:
             await salon.send(
-                f"{interaction.user.mention} a acheté : **{self.description}** <@1089542697108377621>"
+                f"{interaction.user.mention} a acheté : **{self.description}** <@1111346420088311808>"
             )
         await interaction.response.send_message("✅ Offre achetée !",
                                                 ephemeral=True)
