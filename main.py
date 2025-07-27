@@ -5,6 +5,7 @@ from discord.ext import commands, tasks
 from aiohttp import web
 import asyncio
 import os
+from datetime import datetime, timedelta
 
 DATA_FILE = "data.json"
 
@@ -15,6 +16,7 @@ def save_data():
         "salon_offres_id": bot.shop_channel_id,
         "salon_gemmes_id": bot.gemmes_channel_id,
         "message_gemmes_id": bot.gemmes_message_id
+        "last_claims": bot.last_claims,
     }
     with open(DATA_FILE, "w") as f:
         json.dump(data, f)
@@ -28,6 +30,7 @@ def load_data():
             bot.shop_channel_id = data.get("salon_offres_id")
             bot.gemmes_channel_id = data.get("salon_gemmes_id")
             bot.gemmes_message_id = data.get("message_gemmes_id")
+            bot.last_claims = data.get("last_claims", {})
 
 
 intents = discord.Intents.all()
@@ -215,6 +218,8 @@ class WROffersView(BaseOffersView):
         self.add_item(OfferButton("Montage short", 500, "Montage d'un short"))
 
 
+
+
 @bot.command()
 async def shop(ctx):
     uid = str(ctx.author.id)
@@ -222,10 +227,36 @@ async def shop(ctx):
     await ctx.send(f"Tu as **{gemmes} nexus**.\nChoisis une catégorie :",
                    view=CategoryView(ctx.author))
 
+@bot.command()
+async def claim(ctx):
+    uid = str(ctx.author.id)
+    now = datetime.utcnow()
+
+    # Dernier claim
+    last_time_str = bot.last_claims.get(uid)
+    if last_time_str:
+        last_time = datetime.fromisoformat(last_time_str)
+        if now - last_time < timedelta(hours=24):
+            remaining = timedelta(hours=24) - (now - last_time)
+            hours, remainder = divmod(remaining.seconds, 3600)
+            minutes = remainder // 60
+            return await ctx.send(
+                f"⏳ Tu as déjà réclamé tes nexus ! Réessaie dans {remaining.days}j {hours}h {minutes}min."
+            )
+
+    # Récompense
+    bot.user_gemmes[uid] = bot.user_gemmes.get(uid, 0) + 100
+    bot.last_claims[uid] = now.isoformat()
+    await ctx.send("✅ Tu as reçu **100 nexus** pour aujourd'hui !")
+    await update_gemmes_message()
+    save_data()
+
 
 async def main():
     await run_webserver()
     await bot.start(os.getenv("DISCORD_TOKEN"))
+
+bot.last_claims = {}
 
 
 asyncio.run(main())
