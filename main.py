@@ -15,8 +15,8 @@ def save_data():
         "gemmes": bot.user_gemmes,
         "salon_offres_id": bot.shop_channel_id,
         "salon_gemmes_id": bot.gemmes_channel_id,
-        "message_gemmes_id": bot.gemmes_message_id
-        "last_claims": bot.last_claims,
+        "message_gemmes_id": bot.gemmes_message_id,
+        "last_claims": bot.last_claims
     }
     with open(DATA_FILE, "w") as f:
         json.dump(data, f)
