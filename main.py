@@ -68,7 +68,7 @@ async def update_gemmes_message():
         content = "**💎 Nexus des membres :**\n"
         for user_id, gemmes in bot.user_gemmes.items():
             user = await bot.fetch_user(int(user_id))
-            content += f"{user.mention} → {gemmes} Nexus\n"
+            content += f"{user.mention} → {gemmes} nexus\n"
         await message.edit(content=content)
 
 
@@ -171,6 +171,8 @@ class OfferButton(discord.ui.Button):
                 "❌ Tu n'as pas assez de gemmes !", ephemeral=True)
             return
 
+        await interaction.response.defer(ephemeral=True)
+
         bot.user_gemmes[uid] -= self.price
         await update_gemmes_message()
         save_data()
@@ -180,8 +182,7 @@ class OfferButton(discord.ui.Button):
             await salon.send(
                 f"{interaction.user.mention} a acheté : **{self.description}** <@1111346420088311808>"
             )
-        await interaction.response.send_message("✅ Offre achetée !",
-                                                ephemeral=True)
+        await interaction.followup.send("✅ Offre achetée !", ephemeral=True)
 
 
 class BaseOffersView(discord.ui.View):
@@ -218,14 +219,13 @@ class WROffersView(BaseOffersView):
         self.add_item(OfferButton("Montage short", 500, "Montage d'un short"))
 
 
-
-
 @bot.command()
 async def shop(ctx):
     uid = str(ctx.author.id)
     gemmes = bot.user_gemmes.get(uid, 0)
     await ctx.send(f"Tu as **{gemmes} nexus**.\nChoisis une catégorie :",
                    view=CategoryView(ctx.author))
+
 
 @bot.command()
 async def claim(ctx):
@@ -256,7 +256,7 @@ async def main():
     await run_webserver()
     await bot.start(os.getenv("DISCORD_TOKEN"))
 
-bot.last_claims = {}
 
+bot.last_claims = {}
 
 asyncio.run(main())
